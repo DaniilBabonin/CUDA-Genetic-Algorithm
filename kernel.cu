@@ -16,10 +16,14 @@ const int Polynom = 3;			//Полином
 const float randMaxCount = 20.0f;	//Верхняя граница заполнения точек
 const int maxGeneration = 30;		//Число поколений
 
-__global__ void errorsKernel(float* points, float* individs, float* errors, int Polynom, int sizePoint)					//  Вычисление ошибки GPU
+__global__ void errorsKernel(float* points, 
+			     float* individs, 
+			     float* errors, 
+			     int Polynom, 
+			     int sizePoint)					//  Вычисление ошибки GPU
 {
 
-	int id = threadIdx.x;
+	int id = threadIdx.x;							//Поток
 	float ans = 0;
 	int x = 1;
 	for (int i = 0; i < sizePoint; i++)
@@ -42,7 +46,12 @@ __global__ void errorsKernel(float* points, float* individs, float* errors, int 
 }
 
 
-void testErrorsKernel(float* points, float* individs, float* errors, int Polynom, int sizePoint, int sizeIndividum)		// вычисление ошибки на CPU
+void testErrorsKernel(float* points, 
+		      float* individs, 
+		      float* errors, 
+		      int Polynom, 
+		      int sizePoint, 
+		      int sizeIndividum)		// вычисление ошибки на CPU
 {
 	for (int id = 0; id < sizeIndividum; id++)
 	{
@@ -96,7 +105,12 @@ void cpu() {
 
 	for (int generation = 0; generation < maxGeneration; generation++)
 	{
-		testErrorsKernel(pointsH, individumsH, errorsH, Polynom, sizePoint, sizeIndividum);
+		testErrorsKernel(pointsH, 
+				 individumsH, 
+				 errorsH, 
+				 Polynom, 
+				 sizePoint, 
+				 sizeIndividum);
 
 		float* errorsCrossOver = new float[sizeIndividum];
 
@@ -108,10 +122,10 @@ void cpu() {
 		float merodianErrorCrossOvering = errorsCrossOver[merodianCrossOvering];
 		float* theBestInd = new float[Polynom];
 
-		for (size_t i = 0; i < sizeIndividum; i++)			// смена поколения
-		{
-			if (merodianErrorCrossOvering < errorsH[i]) {
-				for (size_t j = 0; j < Polynom; j++)
+		for (size_t i = 0; i < sizeIndividum; i++)			// смена поколения (30 раз)
+		{								// Особи с худшими значениями зануляются
+			if (merodianErrorCrossOvering < errorsH[i]) {		// Лучшие заполняют их своими значениями	
+				for (size_t j = 0; j < Polynom; j++)		// Лучшими считаются те, у которых значение ошибки меньше 
 				{
 					individumsH[i * Polynom + j] = 0;
 				}
@@ -198,7 +212,7 @@ void gpu() {
 		for (size_t i = 0; i < sizeIndividum; i++)				// Смена поколения
 		{									// Особи с худшими значениями зануляются
 			if (merodianErrorCrossOvering < errorsH[i]) {			// Лучшие заполняют их своими значениями
-				for (size_t j = 0; j < Polynom; j++)			
+				for (size_t j = 0; j < Polynom; j++)			// Лучшими считаются те, у которых значение ошибки меньше			
 				{
 					individumsH[i * Polynom + j] = 0;
 				}
