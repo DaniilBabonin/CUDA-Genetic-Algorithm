@@ -8,15 +8,15 @@ using namespace std;
 #include <cstdlib> 
 
 
-const int sizePoint = 700;
-const int sizeIndividum = 1000;
-const int MutationProbability = 10;
-const float MutationDispersion = 5.0f;
-const int Polynom = 3;
-const float randMaxCount = 20.0f;
-const int maxGeneration = 30;
+const int sizePoint = 700; 		//Количество точек
+const int sizeIndividum = 1000;		//Количество индивидумов
+const int MutationProbability = 10;	//Вероятность мутации в процентах
+const float MutationDispersion = 5.0f;	//Дисперсия мутации
+const int Polynom = 3;			//Полином
+const float randMaxCount = 20.0f;	//Верхняя граница заполнения точек
+const int maxGeneration = 30;		//Число поколений
 
-__global__ void errorsKernel(float* points, float* individs, float* errors, int Polynom, int sizePoint)					// ��������� ������ �� GPU
+__global__ void errorsKernel(float* points, float* individs, float* errors, int Polynom, int sizePoint)					//  Вычисление ошибки GPU
 {
 
 	int id = threadIdx.x;
@@ -42,7 +42,7 @@ __global__ void errorsKernel(float* points, float* individs, float* errors, int 
 }
 
 
-void testErrorsKernel(float* points, float* individs, float* errors, int Polynom, int sizePoint, int sizeIndividum)		// ��������� ������ �� CPU
+void testErrorsKernel(float* points, float* individs, float* errors, int Polynom, int sizePoint, int sizeIndividum)		// вычисление ошибки на CPU
 {
 	for (int id = 0; id < sizeIndividum; id++)
 	{
@@ -75,13 +75,13 @@ float RandomFloat(float a, float b) {
 
 void cpu() {
 	float* pointsH = new float[sizePoint]; 
-	for (int i = 0; i < sizePoint; i++)							// ������� ��������� ����� �����
+	for (int i = 0; i < sizePoint; i++)							// создание случайного набора точек
 	{
 		pointsH[i] = RandomFloat(0, randMaxCount);
 	}
 
 	float* individumsH = new float[sizeIndividum * Polynom];
-	for (int i = 0; i < sizeIndividum * Polynom; i++)			// ������� ������ ���������
+	for (int i = 0; i < sizeIndividum * Polynom; i++)			// создание первого поколения
 	{
 		individumsH[i] = RandomFloat(0, randMaxCount);			
 	}
@@ -108,7 +108,7 @@ void cpu() {
 		float merodianErrorCrossOvering = errorsCrossOver[merodianCrossOvering];
 		float* theBestInd = new float[Polynom];
 
-		for (size_t i = 0; i < sizeIndividum; i++)			// ����� ���������
+		for (size_t i = 0; i < sizeIndividum; i++)			// смена поколения
 		{
 			if (merodianErrorCrossOvering < errorsH[i]) {
 				for (size_t j = 0; j < Polynom; j++)
@@ -144,13 +144,13 @@ void cpu() {
 
 void gpu() {
 	float* pointsH = new float[sizePoint];
-	for (int i = 0; i < sizePoint; i++)				// ������� ��������� ����� �����
+	for (int i = 0; i < sizePoint; i++)				// Создаем случайный набор точек
 	{  
 		pointsH[i] = RandomFloat(0, randMaxCount);
 	}
 
 	float* individumsH = new float[sizeIndividum * Polynom];
-	for (int i = 0; i < sizeIndividum * Polynom; i++)	// ������� ������ ���������
+	for (int i = 0; i < sizeIndividum * Polynom; i++)	// Создаем первое поколение
 	{
 		individumsH[i] = RandomFloat(0, randMaxCount);
 	}
@@ -171,11 +171,11 @@ void gpu() {
 
 		int sizeIndividumBytes = sizeIndividum * Polynom * sizeof(float);
 		int sizePointBytes = sizePoint * sizeof(float);
-
+		//Выделяем память
 		cudaMalloc((void**)&pointsD, sizePointBytes);
 		cudaMalloc((void**)&individumsD, sizeIndividumBytes * Polynom);
 		cudaMalloc((void**)&errorsD, sizeIndividum * sizeof(float));
-
+		//Копируем ввод
 		cudaMemcpy(pointsD, pointsH, sizePointBytes, cudaMemcpyHostToDevice);
 		cudaMemcpy(individumsD, individumsH, sizeIndividumBytes, cudaMemcpyHostToDevice);
 		cudaMemcpy(errorsD, errorsH, sizeIndividumBytes, cudaMemcpyHostToDevice);
@@ -195,10 +195,10 @@ void gpu() {
 		float merodianErrorCrossOvering = errorsCrossOver[merodianCrossOvering];
 		float* theBestInd = new float[Polynom];
 
-		for (size_t i = 0; i < sizeIndividum; i++)				// ����� ���������
-		{
-			if (merodianErrorCrossOvering < errorsH[i]) {
-				for (size_t j = 0; j < Polynom; j++)
+		for (size_t i = 0; i < sizeIndividum; i++)				// Смена поколения
+		{									// Особи с худшими значениями зануляются
+			if (merodianErrorCrossOvering < errorsH[i]) {			// Лучшие заполняют их своими значениями
+				for (size_t j = 0; j < Polynom; j++)			
 				{
 					individumsH[i * Polynom + j] = 0;
 				}
