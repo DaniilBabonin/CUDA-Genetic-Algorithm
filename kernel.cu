@@ -112,7 +112,7 @@ void cpu() {
 				 sizePoint, 
 				 sizeIndividum);
 
-		float* errorsCrossOver = new float[sizeIndividum];
+		float* errorsCrossOver = new float[sizeIndividum];		//скрещивание
 
 		for (size_t i = 0; i != sizeIndividum; ++i)
 			errorsCrossOver[i] = errorsH[i];
